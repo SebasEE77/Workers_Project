@@ -1,0 +1,58 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_server
+    ports:
+      - "5672:5672" # RabbitMQ port
+      - "15672:15672" # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ] # Verifica que rabbit esta listo
+      interval: 20s # Verifica cada 20s
+      timeout: 10s  # Espera max 10s la respuesta
+      retries: 10   # Intenta 10 veces antes de marcar como unhealthy
+
+  postgres:
+    image: postgres:16
+    container_name: postgres_server
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Guarda los datos aca
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Crea las tablas automaticamente
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Sebas123
+      POSTGRES_DB: tasksdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"] # Verifica que postgres esta listo
+      interval: 10s
+      timeout: 5s
+      retries: 5
+ 
+  api:
+    build: . # Construye la imagen usando el dockerfile
+    container_name: api_server
+    volumes:
+      - .:/app # Conecta la carpeta actual con /app del contenedor
+    ports:
+      - "8000:8000" 
+    depends_on: # Espera que el servicio este listo antes de arrancar
+      postgres:
+        condition: service_healthy
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload # Comando para correr la api
+ 
+  worker:
+    build: . # Construye la imagen usando el dockerfile
+    container_name: worker_server
+    volumes:
+      - .:/app
+    depends_on: # Espera que el servicio este listo antes de arrancar
+      rabbitmq:
+        condition: service_healthy
+    command: python3 -u worker.py # El -u ayuda a que se muestren los prints en los logs del worker
+    
+volumes: # Ayuda a guardar los datos de la BD
+  postgres_data:
