@@ -15,12 +15,12 @@ You should see all 4 containers with status UP, being:
 - api_server
 - worker_server
 
-3. Verify RabbitMQ is working. Open your browser and go to: http://localhost:15672
+3. Verify RabbitMQ is working. Open your browser and go to: http://localhost:15672. Instead of using "localhost", use your public IP.
 - User: user
 - Password: password <br>
 You should see the RabbitMQ management interface. Go to "Queues and Streams" and check the "tasks" queue exists. If it appears is working.
 
-4. Test the API with the Swagger. Open your browser and go to: http://localhost:8000/docs <br> You should see the Swagger interface with all available endpoints.
+4. Test the API with the Swagger. Open your browser and go to: http://localhost:8000/docs. Instead of using "localhost", use your public IP. <br> You should see the Swagger interface with all available endpoints.
 
 5. Now test the project with one of the endpoints. Because there's no orders or tasks to look yet, first create an order (POST/orders).
 - Click on POST/orders
