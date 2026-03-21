@@ -3,25 +3,49 @@ import json
 import psycopg2
 import pika
 import time
+import boto3
+from botocore.exceptions import ClientError
 from fastapi import FastAPI
 
 app = FastAPI()
 
+# Obtener parametro del Parameter Store
+def get_ssm_parameter(name: str, default: str = None) -> str:
+   client = boto3.client("ssm", region_name="us-east-1")
+   try:
+      response = client.get_parameter(Name=name)
+      return response["Parameter"]["Value"]
+   except ClientError as e:
+      if e.response["Error"]["Code"] == "ParameterNotFound":
+         print(f"[WARN] Parametro '{name}' no encontrado. Usando: '{default}'")
+         return default
+      raise
+
+# Conexion a PostgreSQL leyendo IP del Parameter Store
 def get_db():
+   postgres_ip = get_ssm_parameter(
+      name="/message-queue/dev/postgres/public_ip",
+      default="localhost"
+   )
    return psycopg2.connect(
-      dbname = "tasksdb",
-      user = "postgres",
-      password = "Sebas123",
-      host = "postgres"
+      dbname="tasksdb",
+      user="postgres",
+      password="Sebas123",
+      host=postgres_ip,
+      port=5432
    )
 
+# Conexión a RabbitMQ leyendo IP del Parameter Store
 def get_rabbitMQ():
+   rabbitmq_ip = get_ssm_parameter(
+      name="/message-queue/dev/rabbitmq/public_ip",
+      default="localhost"
+   )
    credentials = pika.PlainCredentials('user', 'password')
    connection = pika.BlockingConnection(
-      pika.ConnectionParameters(host='rabbitmq', credentials=credentials)) #El rabbit esta en mi maquina
+      pika.ConnectionParameters(host=rabbitmq_ip, credentials=credentials))
    channel = connection.channel()
-
-   channel.queue_declare(queue='tasks') #Cola de tasks
+   channel.queue_declare(queue='tasks')
    return connection, channel
 
 #Se llama a este endpoint para crear una orden
