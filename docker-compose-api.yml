@@ -1,0 +1,9 @@
+services:
+  api:
+    build: . # Construye la imagen usando el dockerfile
+    container_name: api_server
+    volumes:
+      - .:/app # Conecta la carpeta actual con /app del contenedor
+    ports:
+      - "8000:8000" 
+    command: uvicorn api:app --host 0.0.0.0 --port 8000 --reload # Comando para correr la api

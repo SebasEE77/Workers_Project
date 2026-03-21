@@ -1,0 +1,8 @@
+services:
+  worker:
+    build: . # Construye la imagen usando el dockerfile
+    container_name: worker_server
+    volumes:
+      - .:/app
+    command: python3 -u worker.py # El -u ayuda a que se muestren los prints en los logs del worker
+    
