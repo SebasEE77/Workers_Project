@@ -5,6 +5,8 @@ import psycopg2
 import boto3
 from botocore.exceptions import ClientError
 
+time.sleep(30)
+
 # Obtener parametro del Parameter Store
 def get_ssm_parameter(name: str, default: str = None) -> str:
    client = boto3.client("ssm", region_name="us-east-1")
