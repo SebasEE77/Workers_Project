@@ -6,7 +6,7 @@ services:
       - postgres_data:/var/lib/postgresql/data # Guarda los datos aca
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Crea las tablas automaticamente
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Sebas123
